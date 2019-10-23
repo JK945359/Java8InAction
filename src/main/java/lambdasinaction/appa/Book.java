@@ -12,6 +12,11 @@ public class Book {
         Arrays.asList(authors).stream().forEach(a -> {
             System.out.println(a.name());
         });
+        // 获取注解
+        Author[] value = Book.class.getAnnotation(Authors.class).value();
+        for (Author author : value) {
+            System.out.println(author);
+        }
     }
 
 }
