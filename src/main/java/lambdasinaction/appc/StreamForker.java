@@ -1,9 +1,18 @@
 package lambdasinaction.appc;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Adapted from http://mail.openjdk.java.net/pipermail/lambda-dev/2013-November/011516.html
@@ -36,17 +45,13 @@ public class StreamForker<T> {
         List<BlockingQueue<T>> queues = new ArrayList<>();
 
         Map<Object, Future<?>> actions =
-                forks.entrySet().stream().reduce(
-                        new HashMap<Object, Future<?>>(),
-                        (map, e) -> {
-                            map.put(e.getKey(),
-                                    getOperationResult(queues, e.getValue()));
-                            return map;
-                        },
-                        (m1, m2) -> {
-                            m1.putAll(m2);
-                            return m1;
-                        });
+            forks.entrySet().stream().reduce(new HashMap<Object, Future<?>>(), (map, e) -> {// map 表示初始的只，e表示流中的每个元素
+                map.put(e.getKey(), getOperationResult(queues, e.getValue()));
+                return map;
+            }, (m1, m2) -> {// 并发的情况下， 用于合并多个线程大的处理结果
+                m1.putAll(m2);
+                return m1;
+            });
 
         return new ForkingStreamConsumer<>(queues, actions);
     }
@@ -56,7 +61,7 @@ public class StreamForker<T> {
         queues.add(queue);
         Spliterator<T> spliterator = new BlockingQueueSpliterator<>(queue);
         Stream<T> source = StreamSupport.stream(spliterator, false);
-        return CompletableFuture.supplyAsync( () -> f.apply(source) );
+        return CompletableFuture.supplyAsync(() -> f.apply(source));
     }
 
     public static interface Results {
@@ -82,14 +87,14 @@ public class StreamForker<T> {
         @Override
         public <R> R get(Object key) {
             try {
-                return ((Future<R>) actions.get(key)).get();
+                return ((Future<R>)actions.get(key)).get();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
         void finish() {
-            accept((T) END_OF_STREAM);
+            accept((T)END_OF_STREAM);
         }
     }
 
@@ -107,8 +112,7 @@ public class StreamForker<T> {
                 try {
                     t = q.take();
                     break;
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                 }
             }
 
