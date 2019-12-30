@@ -1,7 +1,11 @@
 package lambdasinaction.chap10;
 
+
 import java.util.Optional;
 
+/**
+ * @author JK
+ */
 public class OperationsWithOptional {
 
     public static void main(String... args) {

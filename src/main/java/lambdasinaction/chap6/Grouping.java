@@ -1,21 +1,14 @@
 package lambdasinaction.chap6;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.reducing;
-import static java.util.stream.Collectors.summingInt;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static lambdasinaction.chap6.Dish.dishTags;
-import static lambdasinaction.chap6.Dish.menu;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
+import static lambdasinaction.chap6.Dish.dishTags;
+import static lambdasinaction.chap6.Dish.menu;
 
 public class Grouping {
 
@@ -69,12 +62,13 @@ public class Grouping {
 
     private static Map<Dish.Type, Map<CaloricLevel, List<Dish>>> groupDishedByTypeAndCaloricLevel() {
         return menu.stream().collect(groupingBy(Dish::getType, groupingBy((Dish dish) -> {
-            if (dish.getCalories() <= 400)
+            if (dish.getCalories() <= 400) {
                 return CaloricLevel.DIET;
-            else if (dish.getCalories() <= 700)
+            } else if (dish.getCalories() <= 700) {
                 return CaloricLevel.NORMAL;
-            else
+            } else {
                 return CaloricLevel.FAT;
+            }
         })));
     }
 
